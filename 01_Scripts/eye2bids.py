@@ -50,8 +50,16 @@ def main(ROOTPATH):
         for ipath in iData:
             try:
                 # encode sub and run IDs
-                subID = str(ipath.parent).split('/')[-1].strip('P')
+                # the separator will change depending on the OS
+                # linux and macOS = /, windows = \\ 
+                path_separator = '\\'
+                subID = str(ipath.parent).split(
+                    path_separator
+                )[-1].strip('P')
                 runID = ipath.stem.split('_')[-1].split(' ')[0].rjust(2, '0')
+                logging.warning(
+                    "Convering sub-{}, run-{}".format(subID, runID)
+                )
                 # create the export folder
                 EXPORPATH = (
                     ROOTPATH
@@ -179,6 +187,9 @@ def main(ROOTPATH):
                     np.zeros(idx_trig.size),
                     msgs_df['Trig'].values
                 ], 1).astype('int')
+                # NOTE: Turn event array into annotation object
+                anno = mne.annotations_from_events(events,
+                    int(iInfo['Sample Rate']))
                 # %% create raw array of idata
                 rawInfo = mne.create_info(
                     [
@@ -204,7 +215,7 @@ def main(ROOTPATH):
                     rawInfo
                 )
                 # TODO: create annotations instead of events
-                rawData.add_events(events)
+                rawData.rawData.set_annotations(anno)
                 rawData.save(str(EXPORPATH))
             # catch and log an exception, continue with the next file
             except Exception as error:
@@ -218,3 +229,5 @@ if __name__ == '__main__':
     ROOTPATH = Path(sys.argv[1])
     output = main(ROOTPATH)
     logging.warning(output)
+
+# %%
