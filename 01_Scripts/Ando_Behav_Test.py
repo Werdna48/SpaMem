@@ -18,7 +18,15 @@ import itertools
 bhv_df = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
 
 bhv_df = bhv_df.rename(columns = {
-    'subID':'subjectID', 'cond':'task'})
+    'subID':'subjectID', 'cond':'task', 'responseAngle':'response'})
+
+bhv_df['task'] = bhv_df['task'].replace(to_replace=[1, 2, 3], 
+value=['s','ns','ts'], )
+
+# Currently do not have the following columns, need to ask Dragan what these are
+# ori_c_A', 'ori_c_B', 'ori_c_C', 'ori_u_A', 'ori_u_B', 'ori_u_C
+# I assume that these are location and orientaion information of tagets/distractors
+# that are created via the XYA columns in our data set
 
 # @Author: Dragan Rangelov <uqdrange> <- Where the complex Regression is sourced from
 # @Date:   03-6-2019
