@@ -17,7 +17,7 @@ import itertools
 #Currently working on using the Complex Regression
 bhv_df = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
 
-bhv_df = allbeh.rename(columns = {
+bhv_df = bhv_df.rename(columns = {
     'subID':'subjectID', 'cond':'task'})
 
 # @Author: Dragan Rangelov <uqdrange> <- Where the complex Regression is sourced from
@@ -72,3 +72,6 @@ coef_df = pd.DataFrame(data= list(itertools.product(bhv_df['subjectID'].unique()
 # here we append the length of the regression coefficient to other data (np.abs)
 coef_df['coefs'] = np.abs(np.array(allCoefs).reshape(-1, 1))
 gav_coef = coef_df.groupby(['task', 'cued', 'stim']).mean().reset_index()
+
+bhv_df.complexRegression()
+# %%
