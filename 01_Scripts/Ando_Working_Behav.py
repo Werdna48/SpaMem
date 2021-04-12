@@ -18,6 +18,9 @@ paths = sorted(glob.glob(
     'D://Personal//Data//02_Rawdata//**//beh//**.tsv', recursive=True
 ))
 
+paths = sorted(glob.glob(
+    'C://PatDat//02_RawData//**//beh//**.tsv', recursive=True
+))
 
 all_df = []
 for path in paths:
@@ -39,7 +42,7 @@ ok_all_df.dropna()
 #Start of Basic Behavioural analysis - Set up DFS and ANOVA, in conjunction with a plot
 allbeh = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
 
-avg_df = allbeh.groupby([
+avg_df = ok_all_df.groupby([
     'subID',
     'cond',
     'cue'
@@ -67,6 +70,10 @@ plot_df.index =['Spatial', 'NonSpatial', 'TrueSpatial']
 # Cue 1 = L, 2 = R
 plot_df.columns =['Left', 'Right']
 
-plot_df.plot.bar().set_ylabel('Circular SD')
+cerr = 0.094
+qerr = 0.312
+
+plot_df.plot.bar().set_ylabel('Circular SD').errorbar(
+    yerr=['cerr', 'qerr'])
 #End of Basic Behavioural Analysis 
 # %%

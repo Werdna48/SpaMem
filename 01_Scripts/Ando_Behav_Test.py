@@ -22,6 +22,10 @@ RAWPATH = Path("C://PatDat//02_RawData")
 # Forgot to put the data set on my laptop so use this instead for now
 paths = sorted(RAWPATH.glob('**/*.tsv'))
 
+paths = sorted(glob.glob(
+    'C://PatDat//02_RawData//**//beh//**.tsv', recursive=True
+))
+
 all_df = []
 for path in paths:
     tmp_df = pd.read_csv(
@@ -42,8 +46,6 @@ bhv_df.dropna()
 bhv_df = bhv_df.rename(columns = {
     'subID':'subjectID', 'cond':'task', 'responseAngle':'response'})
 
-bhv_df['task'] = bhv_df['task'].replace(to_replace=[1, 2, 3], 
-value=['s','ns','ts'], )
 
 # Currently do not have the following columns, need to ask Dragan what these are
 # ori_c_A', 'ori_c_B', 'ori_c_C', 'ori_u_A', 'ori_u_B', 'ori_u_C
@@ -80,16 +82,16 @@ for sno in bhv_df['subjectID'].unique():
     idx_sno = bhv_df['subjectID'] == sno
     for task in bhv_df['task'].unique():
         idx_task = bhv_df['task'] == task
-        pred_cols = ['_'.join(i) for i in itertools.product({'ts': ['loc'],
-                                                             'ns': ['ori'],
-                                                             's': ['ori']}[task],
+        pred_cols = ['_'.join(i) for i in itertools.product({3: ['loc'],
+                                                             2: ['ori'],
+                                                             1: ['ori']}[task],
                                                             ['c', 'u'],
                                                             ['A', 'B', 'C'])]
         crit = bhv_df.loc[idx_sno & idx_task, 'response'].values
         pred = bhv_df.loc[idx_sno & idx_task, pred_cols].values
         allCoefs += [np.array(complexRegression(crit[:,None], pred))]
 
-sNo, task, cued, stim = np.array(list(itertools.product(bhv_df['subjectID'].unique(),
+sno, task, cued, stim = np.array(list(itertools.product(bhv_df['subjectID'].unique(),
                   bhv_df['task'].unique(),
                   ['c', 'u'],
                   ['A', 'B', 'C']))).T
