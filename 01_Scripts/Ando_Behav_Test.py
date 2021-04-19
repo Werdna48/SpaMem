@@ -82,33 +82,17 @@ for sno in bhv_df['subjectID'].unique():
     idx_sno = bhv_df['subjectID'] == sno
     for task in bhv_df['task'].unique():
         idx_task = bhv_df['task'] == task
-<<<<<<< HEAD
         for cue in bhv_df['cue'].unique():
             idx_cue = bhv_df['cue'] == cue
-            pred_cols = ['_'.join(i) for i in itertools.product({'ts': ['loc'],
-                                                                 'ns': ['ori'],
-                                                                 's': ['ori']}[task],
+            pred_cols = ['_'.join(i) for i in itertools.product({3: ['loc'],
+                                                                 2: ['ori'],
+                                                                 1: ['ori']}[task],
                                                                 ['c', 'u'],
                                                                 ['A', 'B', 'C'])]
             crit = bhv_df.loc[idx_sno & idx_task & idx_cue, 'response'].values
             pred = bhv_df.loc[idx_sno & idx_task & idx_cue, pred_cols].values
             allCoefs += [np.array(complexRegression(crit[:,None], pred))]
 
-=======
-        pred_cols = ['_'.join(i) for i in itertools.product({3: ['loc'],
-                                                             2: ['ori'],
-                                                             1: ['ori']}[task],
-                                                            ['c', 'u'],
-                                                            ['A', 'B', 'C'])]
-        crit = bhv_df.loc[idx_sno & idx_task, 'response'].values
-        pred = bhv_df.loc[idx_sno & idx_task, pred_cols].values
-        allCoefs += [np.array(complexRegression(crit[:,None], pred))]
-
-sno, task, cued, stim = np.array(list(itertools.product(bhv_df['subjectID'].unique(),
-                  bhv_df['task'].unique(),
-                  ['c', 'u'],
-                  ['A', 'B', 'C']))).T
->>>>>>> 8080451a44ad4fa6325151e3c10fc84e6756936f
 coef_df = pd.DataFrame(data= list(itertools.product(bhv_df['subjectID'].unique(),
                                                     bhv_df['task'].unique(),
                                                     bhv_df['cue'].unique(),
@@ -122,20 +106,4 @@ coef_df['weighted_Theta'] = coef_df['abs_Theta'] * coef_df['cos_Theta']
 gav_coef = coef_df.groupby(['task', 'cued', 'stim', 'side']).mean().reset_index()
 # %%
 
-# Should "work" but as the base DF is, it requires too much memory to analyse 
-# but it was only the memory dump error and not a code running error so 
-# the fucntion should work
-crit = bhv_df['response']
-pred = bhv_df['cue']
-
-<<<<<<< HEAD
-output = complexRegression(crit, pred)
-print(output)
-=======
-pred = bhv_df['task'].values
-crit = bhv_df['response'].values
-
-res = complexRegression(crit, pred)
-print(res)
->>>>>>> 8080451a44ad4fa6325151e3c10fc84e6756936f
 # %%
