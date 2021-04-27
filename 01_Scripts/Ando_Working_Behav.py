@@ -67,6 +67,8 @@ plot_df.index =['Spatial', 'NonSpatial', 'TrueSpatial']
 # Cue 1 = L, 2 = R
 plot_df.columns =['Left', 'Right']
 
-plot_df.plot.bar().set_ylabel('Circular SD')
+error = [0.001545, 0.001545, 0.001545]
+
+plot_df.plot.bar(yerr=error).set_ylabel('Circular SD')
 #End of Basic Behavioural Analysis 
 # %%
