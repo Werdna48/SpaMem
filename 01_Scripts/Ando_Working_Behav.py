@@ -37,7 +37,8 @@ ok_all_df.dropna()
 #made a collated file for ease of use on my end
 
 #Start of Basic Behavioural analysis - Set up DFS and ANOVA, in conjunction with a plot
-allbeh = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
+# allbeh = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
+allbeh = pd.read_csv('C:/PatDat/03_Derivatives/allbeh.csv')
 
 avg_df = allbeh.groupby([
     'subID',
@@ -49,7 +50,6 @@ avg_df = allbeh.groupby([
 gav_df = avg_df.groupby(['cond', 'cue'])['cstd'].mean().reset_index()
 cnd_df = avg_df.groupby(['cond'])['cstd'].mean().reset_index()
 
-avg_df.to_csv('D:/Personal/Data/03_Derivatives/avgbeh.csv')
 
 model = print(pg.rm_anova(dv='cstd', within=['cond', 'cue'],
         subject='subID', data=avg_df, detailed=True))

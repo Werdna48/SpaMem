@@ -16,32 +16,7 @@ import itertools
 # %%
 #Currently working on using the Complex Regression
 # bhv_df = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
-
-RAWPATH = Path("C://PatDat//02_RawData")
-
-# Forgot to put the data set on my laptop so use this instead for now
-paths = sorted(RAWPATH.glob('**/*.tsv'))
-
-paths = sorted(glob.glob(
-    'C://PatDat//02_RawData//**//beh//**.tsv', recursive=True
-))
-
-all_df = []
-for path in paths:
-    tmp_df = pd.read_csv(
-        path,
-        sep = '\t',
-        na_values=9999
-    )
-    tmp_df['subID'] = int(Path(path).stem.split('_')[0].split('-')[-1])
-    all_df += [tmp_df]
-all_df = pd.concat(all_df) 
-
-trialok = all_df['trialOK'] == 1
-bhv_df = all_df[trialok]
-bhv_df.dropna()
-# Delete this cell and comment after you finish tofday
-
+bhv_df = pd.read_csv('C:/PatDat/03_Derivatives/allbeh.csv')
 
 bhv_df = bhv_df.rename(columns = {
     'subID':'subjectID', 'cond':'task', 'responseAngle':'response'})
@@ -77,6 +52,7 @@ def complexRegression(crit, pred):
                 * np.asmatrix(crit)))
     return coefs
 
+
 allCoefs = []
 for sno in bhv_df['subjectID'].unique():
     idx_sno = bhv_df['subjectID'] == sno
@@ -104,6 +80,3 @@ coef_df['abs_Theta'] = np.abs(np.array(allCoefs).reshape(-1, 1))
 coef_df['cos_Theta'] = np.cos(np.angle(np.array(allCoefs).reshape(-1, 1)))
 coef_df['weighted_Theta'] = coef_df['abs_Theta'] * coef_df['cos_Theta']
 gav_coef = coef_df.groupby(['task', 'cued', 'stim', 'side']).mean().reset_index()
-# %%
-
-# %%
