@@ -1,82 +1,249 @@
-# %% Libraries
+'''
+Author: Dragan Rangelov (d.rangelov@uq.edu.au)
+File Created: 2021-01-14
+-----
+Last Modified: 2021-01-29
+Modified By: Dragan Rangelov (d.rangelov@uq.edu.au)
+-----
+Licence: Creative Commons Attribution 4.0
+Copyright 2019-2021 Dragan Rangelov, The University of Queensland
+'''
+#===============================================================================
+# %% import libraries
+#===============================================================================
 import numpy as np
-import pandas as pd
+import logging
 from pathlib import Path
+from numpy.core.shape_base import block
+import pandas as pd
+import itertools
+# %% import libraries for plotting
 import matplotlib as mpl
-mpl.use('TkAgg')
+mpl.use('qt5agg')
 import matplotlib.pyplot as plt
 plt.ion()
-from scipy import stats
-from scipy.stats import circstd
-from statsmodels.stats.anova import AnovaRM
-import glob
-import os
-import pingouin as pg
-import itertools
+#===============================================================================
+# %% format logger
+#===============================================================================
+log_format = '%(asctime)s\t%(filename)s\tMSG\t%(message)s'
+date_format = '%Y-%m-%d %H:%M:%S'
+logging.basicConfig(
+    format=log_format,
+    datefmt=date_format
+)
+#===============================================================================
+# %% get all data
+#===============================================================================
+ROOTPATH = Path('/scratch/im34/DB-SpaMem-01')
+bhvFiles = sorted(ROOTPATH.glob('**/sub-*_task-WM_bhv.tsv.gz'))
+# %% load and concatenate all data
+all_df = []
+for fpath in bhvFiles:
+    subNo = int(fpath.stem.split('_')[0].split('-')[-1])
+    logging.warning('Loading subject number {}'.format(subNo))
+    # NOTE: missing responses are indexed as 9999
+    tmp_df = pd.read_csv(fpath, sep = '\t', na_values=9999)
+    tmp_df['subNo'] = subNo
+    all_df += [tmp_df]
+all_df = pd.concat(all_df)
+# %% recode task and cue: 
+#   1 = spatial [s] / ori, 
+#   2 = non spatial [ns] / avg, 
+#   3 = true spatial [ts] / loc
+all_df['task'] = all_df['cond']
+all_df['task'].replace(
+    [1, 2, 3],
+    ['ori', 'avg', 'loc'],
+    inplace=True
+) 
+#   1 = left, 
+#   2 = right
+all_df['side'] = all_df['cue']
+all_df['side'].replace(
+    [1, 2],
+    ['left', 'right'],
+    inplace=True
+) 
+# %% recode angles 
+for col in range(1, 7):
+    all_df[f'P_{col}_rad'] = np.arctan2(
+        *all_df.loc[:, [f'Y_{col}', f'X_{col}']].values.T
+    )
+    # we divide the angle by 90 cause these are orientations
+    all_df[f'A_{col}_rad'] = all_df[f'A_{col}'].values * np.pi / 90
+    # normalize the range of orientations to -pi - pi
+    all_df[f'A_{col}_rad'] = np.angle(np.exp(all_df[f'A_{col}_rad'] * 1j))
+# %% recode angles
+# NOTE: for location task, participants were instructed to report only one side 
+# so it may not be justified to consider location as a 360 degrees task, 
+# but rather a 180 degrees task.
+[
+    all_df['tarRad'],
+    all_df['rspRad']
+] =  (all_df[['targetAngle', 'responseAngle']] * np.pi / 90).values.T
+# for location task we need to divide by 180 to get to pirad, 
+# since we have divided by 90 already, we just need to divide by 2
+all_df.loc[all_df['task'] == 'loc', ['tarRad', 'rspRad']] /= 2
+# wrap angles
+all_df[['tarRad','rspRad']] = np.angle(np.exp(all_df[['tarRad','rspRad']] * 1j))
+# compute error magnitude
+all_df['errRad'] = np.angle(
+    np.exp(all_df['tarRad'] * 1j) 
+    / np.exp(all_df['rspRad'] * 1j)
+)
+# %% rearange columns depending on the cued side 
+tar_df = pd.concat([
+    all_df.loc[
+        (all_df['side'] == side)
+        & (all_df['task'] == task),
+        [
+            col 
+            for col in all_df.columns
+            if ('rad' in col) 
+            and  (
+                (('A' in col) and (task != 'loc'))
+                or (('P' in col) and (task == 'loc'))
+            )
+            and (
+                ((side == 'left') and (int(col.split('_')[1]) % 2 != 0))
+                or ((side == 'right') and (int(col.split('_')[1]) % 2 == 0)) 
+            )
+        ]
+    ].rename(
+        columns=dict(
+            zip(
+                [
+                    col 
+                    for col in all_df.columns
+                    if ('rad' in col) 
+                    and  (
+                        (('A' in col) and (task != 'loc'))
+                        or (('P' in col) and (task == 'loc'))
+                    )
+                    and (
+                        ((side == 'left') and (int(col.split('_')[1]) % 2 != 0))
+                        or ((side == 'right') and (int(col.split('_')[1]) % 2 == 0)) 
+                    )
+                ],
+                [
+                    '_'.join(col)
+                    for col in itertools.product(['TAR'], ['1', '2', '3'])
+                ]
+            )
+        )
+    )
+    for side in all_df['side'].unique()
+    for task in all_df['task'].unique()
+])
+dis_df = pd.concat([
+    all_df.loc[
+        (all_df['side'] == side)
+        & (all_df['task'] == task),
+        [
+            col 
+            for col in all_df.columns
+            if ('rad' in col) 
+            and  (
+                (('A' in col) and (task != 'loc'))
+                or (('P' in col) and (task == 'loc'))
+            )
+            and (
+                ((side == 'left') and (int(col.split('_')[1]) % 2 == 0))
+                or ((side == 'right') and (int(col.split('_')[1]) % 2 != 0)) 
+            )
+        ]
+    ].rename(
+        columns=dict(
+            zip(
+                [
+                    col 
+                    for col in all_df.columns
+                    if ('rad' in col) 
+                    and  (
+                        (('A' in col) and (task != 'loc'))
+                        or (('P' in col) and (task == 'loc'))
+                    )
+                    and (
+                        ((side == 'left') and (int(col.split('_')[1]) % 2 == 0))
+                        or ((side == 'right') and (int(col.split('_')[1]) % 2 != 0)) 
+                    )
+                ],
+                [
+                    '_'.join(col)
+                    for col in itertools.product(['DIS'], ['1', '2', '3'])
+                ]
+            )
+        )
+    )
+    for side in all_df['side'].unique()
+    for task in all_df['task'].unique()
+])
+tmp_df= pd.concat([
+    tar_df,
+    dis_df
+], axis = 1).sort_index()
+all_df.drop(
+    columns=[
+    col 
+    for col in all_df.columns
+    if '_' in col
+], inplace=True)
+all_df = all_df.merge(
+    tmp_df,
+    left_index=True, right_index=True
+)
+# %% remove missing data
+all_df.dropna(inplace = True)   
+# remove bad trials
+all_df = all_df.loc[all_df['trialOK'] == 1]
+#===============================================================================
+# %% analyse error magnitudes
+#===============================================================================
+# compute bins for histograms
+NBINS = 10
+binIntervals= np.linspace(-np.pi, np.pi, NBINS)
+binLabels = np.linspace(-np.pi, np.pi, NBINS + 1)[1:-1]
+all_df['errBin'] = pd.cut(all_df['errRad'], binIntervals, labels=binLabels)
+# compute frequencies per bin
+binFreqs = all_df.groupby([
+    'subNo', 
+    'task', 
+    'cue', 
+    'errBin'
+]).size().reset_index().rename(columns={0:'binFreq'})
+binFreqs['binProp'] = binFreqs.groupby([
+    'subNo',
+    'task',
+    'cue'        
+]).apply(lambda x: x['binFreq']/ x['binFreq'].sum()).reset_index()['binFreq']
+gavBins = binFreqs.groupby([
+    'task',
+    'cue',
+    'errBin'
+]).mean().reset_index()
+# %% plot empirical distributions of error magnitudes
+fig = plt.figure()
+for idx_task, task in enumerate(['ori', 'loc', 'avg']):
+    ax = plt.subplot(1, 3, idx_task + 1)
+    for cue in [1, 2]:
+        ax.bar(
+            binLabels, 
+            gavBins.loc[
+                (gavBins['task'] == task)
+                & (gavBins['cue'] == cue),
+                'binProp'
+            ],
+            alpha = .3,
+            width = .6
+        )
+    ax.set_title(task)
+    ax.set_ylim(0, .6)
 # %%
-#Currently working on using the Complex Regression
-# bhv_df = pd.read_csv('D:/Personal/Data/03_Derivatives/allbeh.csv')
-bhv_df = pd.read_csv('C:/PatDat/03_Derivatives/allbeh.csv')
-
-bhv_df = bhv_df.rename(columns = {
-    'subID':'subjectID', 'cond':'task', 'responseAngle':'response'})
-
-
-# Currently do not have the following columns, need to ask Dragan what these are
-# ori_c_A', 'ori_c_B', 'ori_c_C', 'ori_u_A', 'ori_u_B', 'ori_u_C
-# I assume that these are location and orientaion information of tagets/distractors
-# that are created via the XYA columns in our data set
-
-# @Author: Dragan Rangelov <uqdrange> <- Where the complex Regression is sourced from
-# @Date:   03-6-2019
-# @Email:  d.rangelov@uq.edu.au
-# @Last modified by:   uqdrange
-# @Last modified time: 03-6-2019
-# @License: CC-BY-4.0
-def complexRegression(crit, pred):
-    '''
-    Compute regression coefficients for predictors
-    args
-    ====
-    crit - dependent variable, N trials x 1, -pi to pi
-    pred - independent variables, N trials x M predictors, -pi to pi
-    returns
-    =======
-    vector of coefficients 1 X M
-    '''
-    pred = np.exp(pred * 1j)
-    crit = np.exp(crit * 1j)
-    coefs = (np.asmatrix(np.asmatrix(pred).H
-                        * np.asmatrix(pred)).I
-             * (np.asmatrix(pred).H
-                * np.asmatrix(crit)))
-    return coefs
-
-
-allCoefs = []
-for sno in bhv_df['subjectID'].unique():
-    idx_sno = bhv_df['subjectID'] == sno
-    for task in bhv_df['task'].unique():
-        idx_task = bhv_df['task'] == task
-        for cue in bhv_df['cue'].unique():
-            idx_cue = bhv_df['cue'] == cue
-            pred_cols = ['_'.join(i) for i in itertools.product({3: ['loc'],
-                                                                 2: ['ori'],
-                                                                 1: ['ori']}[task],
-                                                                ['c', 'u'],
-                                                                ['A', 'B', 'C'])]
-            crit = bhv_df.loc[idx_sno & idx_task & idx_cue, 'response'].values
-            pred = bhv_df.loc[idx_sno & idx_task & idx_cue, pred_cols].values
-            allCoefs += [np.array(complexRegression(crit[:,None], pred))]
-
-coef_df = pd.DataFrame(data= list(itertools.product(bhv_df['subjectID'].unique(),
-                                                    bhv_df['task'].unique(),
-                                                    bhv_df['cue'].unique(),
-                                                    ['c', 'u'],
-                                                    ['A', 'B', 'C'])),
-                        columns = ['sNo', 'task', 'side', 'cued', 'stim'])
-# here we append the length of the regression coefficient to other data (np.abs)
-coef_df['abs_Theta'] = np.abs(np.array(allCoefs).reshape(-1, 1))
-coef_df['cos_Theta'] = np.cos(np.angle(np.array(allCoefs).reshape(-1, 1)))
-coef_df['weighted_Theta'] = coef_df['abs_Theta'] * coef_df['cos_Theta']
-gav_coef = coef_df.groupby(['task', 'cued', 'stim', 'side']).mean().reset_index()
+# TODO: 
+# 2. characterise empirical distribution of error magnitudes (SD and M) 
+# 3. Mixture distribution model fitting: 
+#   a.  fixed mu = 0; same K 
+#   b.  variable swap coefficients for cued and uncued side 
+#   c.  for averaging task allow variable K for target and swaps, 
+#       perhaps penalize if Ktarget > K swaps 
+#   d. compute decision weights
