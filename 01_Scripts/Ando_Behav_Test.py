@@ -34,18 +34,19 @@ logging.basicConfig(
 #===============================================================================
 # %% get all data
 #===============================================================================
-ROOTPATH = Path('/scratch/im34/DB-SpaMem-01')
-bhvFiles = sorted(ROOTPATH.glob('**/sub-*_task-WM_bhv.tsv.gz'))
+#ROOTPATH = Path('/scratch/im34/DB-SpaMem-01')
+#bhvFiles = sorted(ROOTPATH.glob('**/sub-*_task-WM_bhv.tsv.gz'))
 # %% load and concatenate all data
-all_df = []
-for fpath in bhvFiles:
-    subNo = int(fpath.stem.split('_')[0].split('-')[-1])
-    logging.warning('Loading subject number {}'.format(subNo))
-    # NOTE: missing responses are indexed as 9999
-    tmp_df = pd.read_csv(fpath, sep = '\t', na_values=9999)
-    tmp_df['subNo'] = subNo
-    all_df += [tmp_df]
-all_df = pd.concat(all_df)
+#all_df = []
+#for fpath in bhvFiles:
+#    subNo = int(fpath.stem.split('_')[0].split('-')[-1])
+#    logging.warning('Loading subject number {}'.format(subNo))
+#    # NOTE: missing responses are indexed as 9999
+#    tmp_df = pd.read_csv(fpath, sep = '\t', na_values=9999)
+#   tmp_df['subNo'] = subNo
+#    all_df += [tmp_df]
+
+all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
 # %% recode task and cue: 
 #   1 = spatial [s] / ori, 
 #   2 = non spatial [ns] / avg, 
@@ -247,3 +248,15 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 #   c.  for averaging task allow variable K for target and swaps, 
 #       perhaps penalize if Ktarget > K swaps 
 #   d. compute decision weights
+
+#Search function :)
+# all_df.loc[all_df['task'] == 'loc', ['tarRad', 'A_1_rad']]
+
+#Ando Notes
+#In this code for both tar/rspRad angles dont always match
+#Seems like angles >90 degrees make it werid?
+#All negative values in tar/rspRand subtract from 360 to get our 
+#angle of interest makes sense if everything is in principle argument form
+#if this is the case and negatives are subtracted from 360 then there isnt a problem
+#This was probably solved while I was away
+#Positive values of tar/rdpRand seem to give our angle of interest
