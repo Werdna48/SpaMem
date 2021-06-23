@@ -46,7 +46,7 @@ logging.basicConfig(
 #   tmp_df['subNo'] = subNo
 #    all_df += [tmp_df]
 
-all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
+all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
 # %% recode task and cue: 
 #   1 = spatial [s] / ori, 
 #   2 = non spatial [ns] / avg, 
@@ -71,7 +71,8 @@ for col in range(1, 7):
         *all_df.loc[:, [f'Y_{col}', f'X_{col}']].values.T
     )
     # we divide the angle by 90 cause these are orientations
-    all_df[f'A_{col}_rad'] = all_df[f'A_{col}'].values * np.pi / 90
+    # we add 90 to the angle cause the counting starts from 12 o'clock
+    all_df[f'A_{col}_rad'] = (all_df[f'A_{col}'].values + 90) * np.pi / 90
     # normalize the range of orientations to -pi - pi
     all_df[f'A_{col}_rad'] = np.angle(np.exp(all_df[f'A_{col}_rad'] * 1j))
 # %% recode angles
@@ -250,13 +251,4 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 #   d. compute decision weights
 
 #Search function :)
-# all_df.loc[all_df['task'] == 'loc', ['tarRad', 'A_1_rad']]
-
-#Ando Notes
-#In this code for both tar/rspRad angles dont always match
-#Seems like angles >90 degrees make it werid?
-#All negative values in tar/rspRand subtract from 360 to get our 
-#angle of interest makes sense if everything is in principle argument form
-#if this is the case and negatives are subtracted from 360 then there isnt a problem
-#This was probably solved while I was away
-#Positive values of tar/rdpRand seem to give our angle of interest
+# all_df.loc[(all_df['task'] == 'avg') & (all_df['side'] == 'left'), ['tarRad', 'targetAngle', 'A_1', 'A_2', 'A_3', 'A_1_rad', 'A_3_rad', 'A_5_rad']].head(10)
