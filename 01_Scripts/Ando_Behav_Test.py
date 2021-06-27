@@ -47,6 +47,7 @@ logging.basicConfig(
 #    all_df += [tmp_df]
 
 all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
+# all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
 # %% recode task and cue: 
 #   1 = spatial [s] / ori, 
 #   2 = non spatial [ns] / avg, 
@@ -252,3 +253,9 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 
 #Search function :)
 # all_df.loc[(all_df['task'] == 'avg') & (all_df['side'] == 'left'), ['tarRad', 'targetAngle', 'A_1', 'A_2', 'A_3', 'A_1_rad', 'A_3_rad', 'A_5_rad']].head(10)
+# use .min()/.max() to find the min and max values for the columns you index
+# all_df['T+A1'] = all_df['targetAngle'] + all_df['A_1']
+# all_df['T+A2'] = all_df['targetAngle'] + all_df['A_2']
+
+#NOTE: Solving the Run_Data_A 90deg shifts will fix ori and avg
+#      Solving the P_x_rad numbers will fix loc 
