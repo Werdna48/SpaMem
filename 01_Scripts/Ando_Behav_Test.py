@@ -46,8 +46,8 @@ logging.basicConfig(
 #   tmp_df['subNo'] = subNo
 #    all_df += [tmp_df]
 
-all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
-# all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
+# all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
+all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
 # %% recode task and cue: 
 #   1 = spatial [s] / ori, 
 #   2 = non spatial [ns] / avg, 
@@ -66,6 +66,13 @@ all_df['side'].replace(
     ['left', 'right'],
     inplace=True
 ) 
+# %% Recode X and Y into Cartesian
+# X and Y measured from [0,0] top left, screen resolution is 1920x1080
+# Therefore centre of screen is [960,540]
+for point in range(1, 7):
+    all_df[f'X_{point}'] =  all_df[f'X_{point}'].values - 960
+    all_df[f'Y_{point}'] =  all_df[f'Y_{point}'].values - 540 
+
 # %% recode angles 
 for col in range(1, 7):
     all_df[f'P_{col}_rad'] = np.arctan2(
@@ -258,4 +265,9 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 # all_df['T+A2'] = all_df['targetAngle'] + all_df['A_2']
 
 #NOTE: Solving the Run_Data_A 90deg shifts will fix ori and avg
-#      Solving the P_x_rad numbers will fix loc 
+#      targetAngle for loc unreliable, is giving rundataA gabor angles     
+#      All angles seem to be measured +ve from origin
+
+#NOTE: Important lines to show Dave
+# all_df.loc[(all_df['task'] == 'ori') & (all_df['side'] == 'left'), ['tarRad',  'A_1_rad', 'targetAngle', 'A_1']].head(10)
+# all_df.loc[(all_df['task'] == 'ori') & (all_df['subID'] == 71), ['targetAngle', 'A_1', 'A_2']].head(10)
