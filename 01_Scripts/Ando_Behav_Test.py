@@ -106,6 +106,10 @@ all_df['errRad'] = np.angle(
     np.exp(all_df['tarRad'] * 1j) 
     / np.exp(all_df['rspRad'] * 1j)
 )
+# Here's the code I used to check the loc cond
+# all_df.loc[(all_df['task'] == 'loc'), ['tarRad', 'P_1_rad' ,'P_2_rad']].head()
+
+
 # %% rearange columns depending on the cued side 
 tar_df = pd.concat([
     all_df.loc[
