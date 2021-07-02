@@ -46,8 +46,8 @@ logging.basicConfig(
 #   tmp_df['subNo'] = subNo
 #    all_df += [tmp_df]
 
-all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
-# all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
+# all_df = pd.read_csv('D://Personal//Data//03_Derivatives//allbeh.csv')
+all_df = pd.read_csv('C://SpaMem//03_Derivatives//allbeh.csv')
 # %% recode task and cue: 
 #   1 = spatial [s] / ori, 
 #   2 = non spatial [ns] / avg, 
@@ -66,6 +66,18 @@ all_df['side'].replace(
     ['left', 'right'],
     inplace=True
 ) 
+# %% Recode X and Y into Cartesian
+# X and Y measured from [0,0] top left, screen resolution is 1920x1080
+# Therefore centre of screen is [960,540]
+#y*-1 because negative y values in this case are actually above the center
+#i.e. (x,200) - (960,540) = (x, -340), but 200px is above centre
+#     could do (960,540) - (x,200) but then same problem with x
+#     decided that y*-1 is easier for consistency otherwise would need
+#     x - 960 and 540 - y, which could be more confusing
+for point in range(1, 7):
+    all_df[f'X_{point}'] =  all_df[f'X_{point}'].values - 960
+    all_df[f'Y_{point}'] =  -1*( all_df[f'Y_{point}'].values - 540)  
+
 # %% recode angles 
 for col in range(1, 7):
     all_df[f'P_{col}_rad'] = np.arctan2(
@@ -94,6 +106,10 @@ all_df['errRad'] = np.angle(
     np.exp(all_df['tarRad'] * 1j) 
     / np.exp(all_df['rspRad'] * 1j)
 )
+# Here's the code I used to check the loc cond
+# all_df.loc[(all_df['task'] == 'loc'), ['tarRad', 'P_1_rad' ,'P_2_rad']].head()
+
+
 # %% rearange columns depending on the cued side 
 tar_df = pd.concat([
     all_df.loc[
@@ -266,3 +282,10 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 #df.loc[(df.side == 1) & (df.phi > 90), 'theta'] = 90 - (-1*df['phi'])
 #df.loc[(df.side == 2) & (df.phi <= 90), 'theta'] = 90 - df['phi'] 
 #df.loc[(df.side == 2) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi'])
+#NOTE: How Angles are measured
+# targetAngle (previously targetAngle_Polar) is measured 3 o'clock CCW
+# A_1:6 (From rundata_A) is measured from 12 o'clock clockwise 
+
+#NOTE: Important lines to show Dave
+# all_df.loc[(all_df['task'] == 'ori') & (all_df['side'] == 'left'), ['tarRad',  'A_1_rad', 'targetAngle', 'A_1']].head(10)
+# all_df.loc[(all_df['task'] == 'ori') & (all_df['subID'] == 71), ['targetAngle', 'A_1', 'A_2']].head(10)
