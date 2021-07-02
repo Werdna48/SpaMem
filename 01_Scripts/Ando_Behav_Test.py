@@ -278,14 +278,19 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 
 #NOTE: Should work to transform ori A_'s(phi's) to 0-360 deg targetAngle(theta)
 # Remember to allow for multiple phi's in the script when using on actual data 
-#df.loc[(df.side == 1) & (df.phi <= 90), 'theta'] = 90 - (-1*df['phi']) 
-#df.loc[(df.side == 1) & (df.phi > 90), 'theta'] = 90 - (-1*df['phi'])
-#df.loc[(df.side == 2) & (df.phi <= 90), 'theta'] = 90 - df['phi'] 
-#df.loc[(df.side == 2) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi'])
+#df.loc[(df.side == 1) & (df.cond == 1) & (df.phi <= 90), 'theta'] = 90 - (-1*df['phi_1']) 
+#df.loc[(df.side == 1) & (df.cond == 1) & (df.phi > 90), 'theta'] = 90 - (-1*df['phi_1'])
+#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi <= 90), 'theta'] = 90 - df['phi_2'] 
+#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi_2'])
 #NOTE: How Angles are measured
 # targetAngle (previously targetAngle_Polar) is measured 3 o'clock CCW
 # A_1:6 (From rundata_A) is measured from 12 o'clock clockwise 
 
+#NOTE: Draft for avg 
+#df.loc[(df.side == 1) & (df.cond == 2) & (df.phi <= 90), 'theta'] = 90 - ((-1*df['phi_1']) + (-1*df['phi_3']) + (-1*df['phi_4']).mean(axis=1))
+#df.loc[(df.side == 1) & (df.cond == 2) & (df.phi > 90), 'theta'] = 90 - ((-1*df['phi_1']) + (-1*df['phi_3']) + (-1*df['phi_4']).mean(axis=1))
+#df.loc[(df.side == 2) & (df.cond == 2) & (df.phi <= 90), 'theta'] = 90 - (df['phi_2'] + df['phi_4'] + df['phi_6']).mean(axis=1)
+#df.loc[(df.side == 2) & (df.cond == 2) & (df.phi > 90), 'theta'] = 360 + ((90 - df['phi']) + (90 - df['phi']) + (90 - df['phi'])).mean(axis=1)
 #NOTE: Important lines to show Dave
 # all_df.loc[(all_df['task'] == 'ori') & (all_df['side'] == 'left'), ['tarRad',  'A_1_rad', 'targetAngle', 'A_1']].head(10)
 # all_df.loc[(all_df['task'] == 'ori') & (all_df['subID'] == 71), ['targetAngle', 'A_1', 'A_2']].head(10)
