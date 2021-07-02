@@ -259,3 +259,10 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 
 #NOTE: Solving the Run_Data_A 90deg shifts will fix ori and avg
 #      Solving the P_x_rad numbers will fix loc 
+
+#NOTE: Should work to transform ori A_'s(phi's) to 0-360 deg targetAngle(theta)
+# Remember to allow for multiple phi's in the script when using on actual data 
+#df.loc[(df.side == 1) & (df.phi <= 90), 'theta'] = 90 - (-1*df['phi']) 
+#df.loc[(df.side == 1) & (df.phi > 90), 'theta'] = 90 - (-1*df['phi'])
+#df.loc[(df.side == 2) & (df.phi <= 90), 'theta'] = 90 - df['phi'] 
+#df.loc[(df.side == 2) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi'])
