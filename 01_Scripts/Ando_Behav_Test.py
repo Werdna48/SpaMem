@@ -299,6 +299,7 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 #df.loc[(df.side == 1) & (df.cond == 2), 'theta'] = 90 - (-1*(df['phi_1'] + df['phi_3'] + df['phi_5']).mean(axis=1))
 #df.loc[(df.side == 2) & (df.cond == 2) & (df.phi <= 90), 'theta'] = 90 - (df['phi_2'] + df['phi_4'] + df['phi_6']).mean(axis=1)
 #df.loc[(df.side == 2) & (df.cond == 2) & (df.phi > 90), 'theta'] = 360 + ((90 - df['phi_2']) + (90 - df['phi_4']) + (90 - df['phi_6'])).mean(axis=1)
+# Need to figuire out where the 90's and 360's go with multiple cols
 # UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES!
 
 #NOTE: Important lines to show Dave
