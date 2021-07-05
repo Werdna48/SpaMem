@@ -270,27 +270,64 @@ for idx_task, task in enumerate(['ori', 'loc', 'avg']):
 #Search function :)
 # all_df.loc[(all_df['task'] == 'avg') & (all_df['side'] == 'left'), ['tarRad', 'targetAngle', 'A_1', 'A_2', 'A_3', 'A_1_rad', 'A_3_rad', 'A_5_rad']].head(10)
 # use .min()/.max() to find the min and max values for the columns you index
-# all_df['T+A1'] = all_df['targetAngle'] + all_df['A_1']
-# all_df['T+A2'] = all_df['targetAngle'] + all_df['A_2']
 
-#NOTE: Solving the Run_Data_A 90deg shifts will fix ori and avg
-#      Solving the P_x_rad numbers will fix loc 
+#TODO:
+# done 1. Location should be fixed. all_df.loc[(all_df['task'] == 'loc'), ['tarRad', 'P_1_rad', 'P_2_rad']].head(10)
+# 2. Ori: decide if we want theta's or phi's and if want (-180 - 180)/(0 - 180)/ or(0 - 360)
+# 3. Avg: decide if we want theta's or phi's and if want (-180 - 180)/(0 - 180)/or(0 - 360)
+# 4. deltaAngle: Assess if we need to recalculate deltaAngle
 
-#NOTE: Should work to transform ori A_'s(phi's) to 0-360 deg targetAngle(theta)
-# Remember to allow for multiple phi's in the script when using on actual data 
-#df.loc[(df.side == 1) & (df.cond == 1) & (df.phi <= 90), 'theta'] = 90 - (-1*df['phi_1']) 
-#df.loc[(df.side == 1) & (df.cond == 1) & (df.phi > 90), 'theta'] = 90 - (-1*df['phi_1'])
-#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi <= 90), 'theta'] = 90 - df['phi_2'] 
-#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi_2'])
 #NOTE: How Angles are measured
 # targetAngle (previously targetAngle_Polar) is measured 3 o'clock CCW
 # A_1:6 (From rundata_A) is measured from 12 o'clock clockwise 
 
+#NOTE:An alternative to the below is to make either the left or right cue'd 
+#   angles negative  and do same calcs without the +- 90's/360's (keeping it 0-180)
+#   might be preferable to keep left angles similar in magnitude to right angles
+#   for the purposes of delta angle calculate we can just use absolute values
+
+#NOTE: Should work to transform ori A_'s(phi's) to 0-360 deg targetAngle(theta)
+# neither ori or avg code below has been tested on our data, need to remove the +90 in line 88
+#df.loc[(df.side == 1) & (df.cond == 1), 'theta'] = 90 - (-1*df['phi_1']) 
+#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi <= 90), 'theta'] = 90 - df['phi_2'] 
+#df.loc[(df.side == 2) & (df.cond == 1) & (df.phi > 90), 'theta'] = 360 + (90 - df['phi_2'])
+# UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES!
+
 #NOTE: Draft for avg 
-#df.loc[(df.side == 1) & (df.cond == 2) & (df.phi <= 90), 'theta'] = 90 - ((-1*df['phi_1']) + (-1*df['phi_3']) + (-1*df['phi_4']).mean(axis=1))
-#df.loc[(df.side == 1) & (df.cond == 2) & (df.phi > 90), 'theta'] = 90 - ((-1*df['phi_1']) + (-1*df['phi_3']) + (-1*df['phi_4']).mean(axis=1))
+# Multiply by neg 1 after mean is calcuated, to avoid conflicts with 
+# adding negative numbers that could cancel eachother out 
+#df.loc[(df.side == 1) & (df.cond == 2), 'theta'] = 90 - (-1*(df['phi_1'] + df['phi_3'] + df['phi_5']).mean(axis=1))
 #df.loc[(df.side == 2) & (df.cond == 2) & (df.phi <= 90), 'theta'] = 90 - (df['phi_2'] + df['phi_4'] + df['phi_6']).mean(axis=1)
 #df.loc[(df.side == 2) & (df.cond == 2) & (df.phi > 90), 'theta'] = 360 + ((90 - df['phi']) + (90 - df['phi']) + (90 - df['phi'])).mean(axis=1)
+# UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES! UNSURE HOW THIS SCALES!
+
 #NOTE: Important lines to show Dave
 # all_df.loc[(all_df['task'] == 'ori') & (all_df['side'] == 'left'), ['tarRad',  'A_1_rad', 'targetAngle', 'A_1']].head(10)
 # all_df.loc[(all_df['task'] == 'ori') & (all_df['subID'] == 71), ['targetAngle', 'A_1', 'A_2']].head(10)
+
+#NOTE:Phi to theta calculations (for 0-360 deg)
+# Phi angles are measured from 12 CW, theta is measured from 3CCW, however,
+# phi has been modded by 180, so right side angles stay the same, but left
+# side phi's should be phi+180, if they werent modded. But if we want to keep the mod
+# then phi+180 is the same as -phi. Using -phi left cued trials now start from 12 CCW
+# so any left theta = 90-(-phi), since -phi is measured CCW like theta, no adjustments need to be made 
+# for angles >90
+# for any right theta <=90 (which would be 1Q), 1Q = 90, therefore, 90 = phi + theta
+# theta = 90 - phi. This wont work for right thetas >90 as Phi is measured CW and theta CCW
+# right thetas >90 happen to be 4Q and using the previous formula will give -ve thetas, 
+# any negative that can be expressed as a positive theta using theta_pos = 360 + theta_neg
+# we can then use our negative theta calcuated above to find a positive theta that
+# will be between (270-360deg)
+
+
+#NOTE:theta = phi (-180-180) deg or theta = phi (0-180) deg calcualtions
+# calculating our theta's as phi's makes the most sense if we care about 
+# left and right sided error magnitudes to be similar (if we wanted this but in terms of 3 o'clock
+# I would reccomended mod 180 the values given in the 0-360 degree calcs; but aslong as both are in terms of eachother it shouldnt matter)
+# if anything it might be easier to keep them as phi's to distinguish between left and right cues more intuitively
+# Basically theta = phi (-180-180) would just be making left sided or right sided cues -ve
+# I would say that left = negative makes most sense as phi is measured CW, so Q1 and Q4
+# are measured first and they are on the right, which rightfully means that the left should be negative
+# applying polar coordinate logic here. Otherwise we dont do that and set theta to phi and call it a day
+# no transforms are neccessary other than multiplying left sided phis by -1 if we
+# decided for (-180-180)
