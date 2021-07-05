@@ -48,7 +48,7 @@
       },
       "run_data_A":
       {
-        "description": "Orientations of all presented gabors in 0-360 angles with 0 being 12 o'clock, and increasing counter-clockwise",
+        "description": "Orientations of all presented gabors in 0-180 (modulo of 180 from 360) angles with 0 being 12 o'clock, and increasing clockwise",
         "columns":
         {
         "1": "gabor on the left - this is the target if left side is cued",
@@ -110,7 +110,7 @@
       },
       "run_data_A":
       {
-        "description": "Orientations of all presented gabors in 0-360 angles with 0 being 12 o'clock, and increasing counter-clockwise",
+        "description": "Orientations of all presented gabors in 0-180 (modulo of 180 from 360) angles with 0 being 12 o'clock, and increasing clockwise",
         "columns":
         {
         "1": "gabor on the left - this is the target if left side is cued",
@@ -172,7 +172,7 @@
       },
       "run_data_A":
       {
-        "description": "Orientations of all presented gabors in 0-360 angles with 0 being 12 o'clock, and increasing counter-clockwise",
+        "description": "Orientations of all presented gabors in 0-180 (modulo of 180 from 360) angles with 0 being 12 o'clock, and increasing clockwise",
         "columns":
         {
         "1": "gabor on the left - this is the target if left side is cued",
